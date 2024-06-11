@@ -17,7 +17,7 @@ const handleDuplicateEntryError = (err: any): TGenericErrorResponse => {
 
   return {
     statusCode,
-    message: 'Invalid ID',
+    message: 'Duplication Found',
     errorSources,
   };
 };
