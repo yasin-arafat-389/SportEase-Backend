@@ -3,6 +3,7 @@ import { TLoginUser } from './auth.interface';
 import bcrypt from 'bcrypt';
 import { createToken } from './auth.utils';
 import config from '../../config';
+import { JwtPayload } from 'jsonwebtoken';
 
 const login = async (payload: TLoginUser) => {
   const user = await UserModel.findOne({ email: payload.email }).select(
@@ -26,8 +27,8 @@ const login = async (payload: TLoginUser) => {
 
   //create token and send to the  client
 
-  const jwtPayload = {
-    userId: user.email,
+  const jwtPayload: JwtPayload = {
+    email: user.email,
     role: user.role,
   };
 

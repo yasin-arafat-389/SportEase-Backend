@@ -72,10 +72,6 @@ const checkAvailability = async (dateFromQuery: string) => {
     'startTime endTime -_id',
   );
 
-  if (bookings.length === 0) {
-    throw new Error('No slots found for this date!');
-  }
-
   return bookings;
 };
 

@@ -39,7 +39,15 @@ const getAllFacility: RequestHandler = async (req, res, next) => {
   try {
     const result = await FacilityServices.getAllFacility();
 
-    sendResponse(res, result, 'Facilities retrieved successfully');
+    return res.status(result.length === 0 ? 404 : 200).json({
+      success: result.length === 0 ? false : true,
+      statusCode: result.length === 0 ? 404 : 200,
+      message:
+        result.length === 0
+          ? 'No Data Found'
+          : 'Facilities retrieved successfully',
+      data: result,
+    });
   } catch (error) {
     next(error);
   }

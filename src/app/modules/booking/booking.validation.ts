@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const BookingSchema = z.object({
+const createBookingValidation = z.object({
   body: z.object({
     date: z.string(),
     startTime: z.string(),
@@ -9,4 +9,4 @@ export const BookingSchema = z.object({
   }),
 });
 
-export type TBooking = z.infer<typeof BookingSchema>;
+export const validateBooking = { createBookingValidation };

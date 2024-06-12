@@ -19,7 +19,8 @@ app.use(globalErrorHandler);
 app.use((req: Request, res: Response) => {
   res.status(404).json({
     success: false,
-    message: 'Route not found',
+    statusCode: 404,
+    message: 'Not found',
   });
 });
 

@@ -7,5 +7,5 @@ export type TBooking = {
   user: Types.ObjectId;
   facility: Types.ObjectId;
   payableAmount: number;
-  isBooked: boolean;
+  isBooked: 'confirmed' | 'cancelled';
 };

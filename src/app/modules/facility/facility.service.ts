@@ -12,6 +12,11 @@ const updateFacility = async (id: string, payload: Partial<TFacility>) => {
     { $set: payload },
     { new: true, runValidators: true },
   );
+
+  if (!result) {
+    throw new Error('Facility not found'!);
+  }
+
   return result;
 };
 
