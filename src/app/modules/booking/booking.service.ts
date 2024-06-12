@@ -15,6 +15,28 @@ const createBooking = async (payload: TBooking, user: JwtPayload) => {
     throw new Error('Facility not found!');
   }
 
+  // Fetch all bookings for the specified facility on the specified date
+  const bookings = await BookingModel.find({
+    date: payload.date,
+  });
+
+  // Check for overlapping bookings
+  const requestedStartTime = moment(payload.startTime, 'HH:mm');
+  const requestedEndTime = moment(payload.endTime, 'HH:mm');
+
+  for (const booking of bookings) {
+    const existingStartTime = moment(booking.startTime, 'HH:mm');
+    const existingEndTime = moment(booking.endTime, 'HH:mm');
+
+    const isOverlap =
+      requestedStartTime.isBefore(existingEndTime) &&
+      requestedEndTime.isAfter(existingStartTime);
+
+    if (isOverlap) {
+      throw new Error('The requested time slot is already booked!');
+    }
+  }
+
   payload.user = userData?._id as Types.ObjectId;
   payload.payableAmount = calculatePayable(
     payload.endTime,
