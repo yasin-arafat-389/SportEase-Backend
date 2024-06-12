@@ -67,12 +67,67 @@ const checkAvailability = async (dateFromQuery: string) => {
     ? moment(dateParam, 'DD-MM-YYYY').format('YYYY-MM-DD')
     : moment().format('YYYY-MM-DD');
 
-  // Fetch all bookings for the specified date
+  // Fetch all bookings for the specified date, selecting only startTime and endTime
   const bookings = await BookingModel.find({ date: date }).select(
     'startTime endTime -_id',
   );
 
-  return bookings;
+  // Define the full range of the day's available time slots
+  const fullDayStart = moment('00:00', 'HH:mm');
+  const fullDayEnd = moment('24:00', 'HH:mm');
+
+  // Sort the bookings by startTime
+  const sortedBookings = bookings.sort((a, b) =>
+    moment(a.startTime, 'HH:mm').diff(moment(b.startTime, 'HH:mm')),
+  );
+
+  // Initialize available slots array
+  const availableSlots = [];
+
+  // Check time before the first booking
+  if (
+    sortedBookings.length === 0 ||
+    fullDayStart.isBefore(moment(sortedBookings[0].startTime, 'HH:mm'))
+  ) {
+    availableSlots.push({
+      startTime: fullDayStart.format('HH:mm'),
+      endTime:
+        sortedBookings.length > 0
+          ? moment(sortedBookings[0].startTime, 'HH:mm').format('HH:mm')
+          : fullDayEnd.format('HH:mm'),
+    });
+  }
+
+  // Check gaps between bookings
+  for (let i = 0; i < sortedBookings.length - 1; i++) {
+    const endCurrentBooking = moment(sortedBookings[i].endTime, 'HH:mm');
+    const startNextBooking = moment(sortedBookings[i + 1].startTime, 'HH:mm');
+
+    if (endCurrentBooking.isBefore(startNextBooking)) {
+      availableSlots.push({
+        startTime: endCurrentBooking.format('HH:mm'),
+        endTime: startNextBooking.format('HH:mm'),
+      });
+    }
+  }
+
+  // Check time after the last booking
+  if (
+    sortedBookings.length > 0 &&
+    moment(sortedBookings[sortedBookings.length - 1].endTime, 'HH:mm').isBefore(
+      fullDayEnd,
+    )
+  ) {
+    availableSlots.push({
+      startTime: moment(
+        sortedBookings[sortedBookings.length - 1].endTime,
+        'HH:mm',
+      ).format('HH:mm'),
+      endTime: fullDayEnd.format('HH:mm'),
+    });
+  }
+
+  return availableSlots;
 };
 
 export const BookingServices = {

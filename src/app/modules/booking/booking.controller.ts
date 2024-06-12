@@ -71,15 +71,7 @@ const checkAvailability: RequestHandler = async (req, res, next) => {
       req.query.date as string,
     );
 
-    return res.status(result.length === 0 ? 404 : 200).json({
-      success: result.length === 0 ? false : true,
-      statusCode: result.length === 0 ? 404 : 200,
-      message:
-        result.length === 0
-          ? 'No Data Found'
-          : 'Availability checked successfully',
-      data: result,
-    });
+    sendResponse(res, result, 'Availability checked successfully');
   } catch (error) {
     next(error);
   }
