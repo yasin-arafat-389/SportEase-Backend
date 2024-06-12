@@ -3,19 +3,27 @@ import { TBooking } from './booking.interface';
 import BookingModel from './booking.model';
 import UserModel from '../user/user.model';
 import { Types } from 'mongoose';
+import FacilityModel from '../facility/facility.model';
+import calculatePayable from '../../utils/calculatePayable/calculatePayable';
+import moment from 'moment';
 
 const createBooking = async (payload: TBooking, user: JwtPayload) => {
-  try {
-    const userData = await UserModel.findOne({ email: user.email });
+  const userData = await UserModel.findOne({ email: user.email });
+  const facilityDetails = await FacilityModel.findById(payload.facility);
 
-    payload.user = userData?._id as Types.ObjectId;
-    payload.payableAmount = 30;
-
-    const result = await BookingModel.create(payload);
-    return result;
-  } catch (error) {
-    console.log(error);
+  if (!facilityDetails) {
+    throw new Error('Facility not found!');
   }
+
+  payload.user = userData?._id as Types.ObjectId;
+  payload.payableAmount = calculatePayable(
+    payload.endTime,
+    payload.startTime,
+    facilityDetails?.pricePerHour as number,
+  );
+
+  const result = await BookingModel.create(payload);
+  return result;
 };
 
 const viewAllBookings = async () => {
@@ -42,11 +50,33 @@ const viewAllBookingsByUser = async (user: JwtPayload) => {
 const cancelBooking = async (id: string) => {
   const result = await BookingModel.findOneAndUpdate(
     { _id: id },
-    { isBooked: false },
+    { isBooked: 'cancelled' },
     { new: true, runValidators: true },
   ).populate('facility');
 
+  if (!result) {
+    throw new Error('Booking not found!!');
+  }
+
   return result;
+};
+
+const checkAvailability = async (dateFromQuery: string) => {
+  const dateParam = dateFromQuery as string;
+  const date = dateParam
+    ? moment(dateParam, 'DD-MM-YYYY').format('YYYY-MM-DD')
+    : moment().format('YYYY-MM-DD');
+
+  // Fetch all bookings for the specified date
+  const bookings = await BookingModel.find({ date: date }).select(
+    'startTime endTime -_id',
+  );
+
+  if (bookings.length === 0) {
+    throw new Error('No slots found for this date!');
+  }
+
+  return bookings;
 };
 
 export const BookingServices = {
@@ -54,4 +84,5 @@ export const BookingServices = {
   viewAllBookings,
   viewAllBookingsByUser,
   cancelBooking,
+  checkAvailability,
 };
