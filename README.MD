@@ -76,7 +76,7 @@ The application is deployed and can be accessed at: [Live Server URL](https://sp
 
 4. **Run the application**:
    ```sh
-   npm start
+   npm run start:dev
    ```
 
 ### Usage
