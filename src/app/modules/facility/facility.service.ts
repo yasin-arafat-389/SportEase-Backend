@@ -26,6 +26,11 @@ const deleteFacility = async (id: string) => {
     { isDeleted: true },
     { new: true, runValidators: true },
   );
+
+  if (!result) {
+    throw new Error('Facility not found');
+  }
+
   return result;
 };
 
