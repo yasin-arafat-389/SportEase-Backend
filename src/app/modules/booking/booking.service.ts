@@ -106,17 +106,20 @@ const checkAvailability = async (dateFromQuery: string) => {
   // Initialize available slots array
   const availableSlots = [];
 
+  // If no bookings for the day, show the full day availability
+  if (sortedBookings.length === 0) {
+    availableSlots.push({
+      startTime: '00:00',
+      endTime: '24:00',
+    });
+    return availableSlots;
+  }
+
   // Check time before the first booking
-  if (
-    sortedBookings.length === 0 ||
-    fullDayStart.isBefore(moment(sortedBookings[0].startTime, 'HH:mm'))
-  ) {
+  if (fullDayStart.isBefore(moment(sortedBookings[0].startTime, 'HH:mm'))) {
     availableSlots.push({
       startTime: fullDayStart.format('HH:mm'),
-      endTime:
-        sortedBookings.length > 0
-          ? moment(sortedBookings[0].startTime, 'HH:mm').format('HH:mm')
-          : fullDayEnd.format('HH:mm'),
+      endTime: moment(sortedBookings[0].startTime, 'HH:mm').format('HH:mm'),
     });
   }
 
@@ -135,7 +138,6 @@ const checkAvailability = async (dateFromQuery: string) => {
 
   // Check time after the last booking
   if (
-    sortedBookings.length > 0 &&
     moment(sortedBookings[sortedBookings.length - 1].endTime, 'HH:mm').isBefore(
       fullDayEnd,
     )
