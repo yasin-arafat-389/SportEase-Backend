@@ -84,10 +84,8 @@ const cancelBooking = async (id: string) => {
 };
 
 const checkAvailability = async (dateFromQuery: string) => {
-  const dateParam = dateFromQuery as string;
-  const date = dateParam
-    ? moment(dateParam, 'DD-MM-YYYY').format('YYYY-MM-DD')
-    : moment().format('YYYY-MM-DD');
+  const dateParam = dateFromQuery || moment().format('YYYY-MM-DD');
+  const date = dateParam;
 
   // Fetch all bookings for the specified date, selecting only startTime and endTime
   const bookings = await BookingModel.find({ date: date }).select(
@@ -110,7 +108,7 @@ const checkAvailability = async (dateFromQuery: string) => {
   if (sortedBookings.length === 0) {
     availableSlots.push({
       startTime: '00:00',
-      endTime: '24:00',
+      endTime: '23:59',
     });
     return availableSlots;
   }
@@ -147,7 +145,7 @@ const checkAvailability = async (dateFromQuery: string) => {
         sortedBookings[sortedBookings.length - 1].endTime,
         'HH:mm',
       ).format('HH:mm'),
-      endTime: fullDayEnd.format('HH:mm'),
+      endTime: '23:59',
     });
   }
 
