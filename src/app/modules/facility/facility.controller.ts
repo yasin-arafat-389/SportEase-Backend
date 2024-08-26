@@ -6,7 +6,7 @@ const createFacility: RequestHandler = async (req, res, next) => {
   try {
     const result = await FacilityServices.createFacility(req.body);
 
-    sendResponse(res, result, 'Facility added succesfully');
+    sendResponse(res, result, 'Facility created succesfully');
   } catch (error) {
     next(error);
   }
@@ -53,9 +53,22 @@ const getAllFacility: RequestHandler = async (req, res, next) => {
   }
 };
 
+const getSingleFacilityDetails: RequestHandler = async (req, res, next) => {
+  try {
+    const result = await FacilityServices.getSingleFacilityDetails(
+      req.params.id,
+    );
+
+    sendResponse(res, result, 'Facility details retrieved succesfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const FacilityControllers = {
   createFacility,
   updateFacility,
   deleteFacility,
   getAllFacility,
+  getSingleFacilityDetails,
 };

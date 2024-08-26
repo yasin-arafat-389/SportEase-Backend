@@ -77,10 +77,30 @@ const checkAvailability: RequestHandler = async (req, res, next) => {
   }
 };
 
+const paymentConfirmationController: RequestHandler = async (
+  req,
+  res,
+  next,
+) => {
+  try {
+    const { transactionId, status } = req.query;
+
+    const result = await BookingServices.paymentConfirmation(
+      transactionId as string,
+      status as string,
+    );
+
+    res.send(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const BookingControllers = {
   createBooking,
   viewAllBookings,
   viewAllBookingsByUser,
   cancelBooking,
   checkAvailability,
+  paymentConfirmationController,
 };

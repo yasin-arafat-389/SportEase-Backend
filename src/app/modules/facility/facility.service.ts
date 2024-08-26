@@ -35,7 +35,17 @@ const deleteFacility = async (id: string) => {
 };
 
 const getAllFacility = async () => {
-  const result = await FacilityModel.find();
+  const result = await FacilityModel.find({ isDeleted: false });
+  return result;
+};
+
+const getSingleFacilityDetails = async (id: string) => {
+  const result = await FacilityModel.findById(id);
+
+  if (!result) {
+    throw new Error('Facility not found');
+  }
+
   return result;
 };
 
@@ -44,4 +54,5 @@ export const FacilityServices = {
   updateFacility,
   deleteFacility,
   getAllFacility,
+  getSingleFacilityDetails,
 };

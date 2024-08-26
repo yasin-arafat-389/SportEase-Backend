@@ -7,5 +7,7 @@ export type TBooking = {
   user: Types.ObjectId;
   facility: Types.ObjectId;
   payableAmount: number;
-  isBooked: 'confirmed' | 'cancelled';
+  paymentStatus: 'pending' | 'paid';
+  transactionId: string;
+  isBooked: 'confirmed' | 'cancelled' | 'pending';
 };

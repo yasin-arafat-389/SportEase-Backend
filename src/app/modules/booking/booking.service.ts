@@ -6,6 +6,12 @@ import { Types } from 'mongoose';
 import FacilityModel from '../facility/facility.model';
 import calculatePayable from '../../utils/calculatePayable/calculatePayable';
 import moment from 'moment';
+import {
+  initiatePayment,
+  verifyPayment,
+} from '../../utils/Payment.Gateway/PaymentGateway';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 const createBooking = async (payload: TBooking, user: JwtPayload) => {
   const userData = await UserModel.findOne({ email: user.email });
@@ -37,15 +43,33 @@ const createBooking = async (payload: TBooking, user: JwtPayload) => {
     }
   }
 
+  const transactionId = `TXN-${Date.now()}`;
+
   payload.user = userData?._id as Types.ObjectId;
+  payload.transactionId = transactionId;
   payload.payableAmount = calculatePayable(
     payload.endTime,
     payload.startTime,
     facilityDetails?.pricePerHour as number,
   );
 
-  const result = await BookingModel.create(payload);
-  return result;
+  const paymentInfo = {
+    transactionId,
+    totalPrice: parseFloat(payload.payableAmount.toFixed(2)),
+    custormerName: userData?.name,
+    customerEmail: userData?.email,
+    customerAddress: userData?.address,
+    customerPhone: userData?.phone,
+  };
+
+  const booking = await BookingModel.create({
+    ...payload,
+    payableAmount: parseFloat(payload.payableAmount.toFixed(2)),
+  });
+
+  const initializePayment = await initiatePayment(paymentInfo);
+
+  return { booking, initializePayment };
 };
 
 const viewAllBookings = async () => {
@@ -152,10 +176,67 @@ const checkAvailability = async (dateFromQuery: string) => {
   return availableSlots;
 };
 
+const paymentConfirmation = async (transactionId: string, status: string) => {
+  const verifyResponse = await verifyPayment(transactionId);
+
+  let result;
+  let message = '';
+
+  if (verifyResponse && verifyResponse.pay_status === 'Successful') {
+    result = await BookingModel.findOneAndUpdate(
+      { transactionId },
+      {
+        paymentStatus: 'paid',
+        isBooked: 'confirmed',
+      },
+    );
+    message = 'Successfully Paid!';
+  } else {
+    message = 'Payment Failed!';
+  }
+
+  const filePathForSuccessfulPaymentTemplate = join(
+    // eslint-disable-next-line no-undef
+    __dirname,
+    '../../../views/paymentSuccess.html',
+  );
+
+  // eslint-disable-next-line no-undef
+  const filePathForFailedPaymentTemplate = join(
+    // eslint-disable-next-line no-undef
+    __dirname,
+    '../../../views/paymentFailed.html',
+  );
+
+  let templateForSuccessfulPayment = readFileSync(
+    filePathForSuccessfulPaymentTemplate,
+    'utf-8',
+  );
+
+  const templateForFailedPayment = readFileSync(
+    filePathForFailedPaymentTemplate,
+    'utf-8',
+  );
+
+  if (message === 'Successfully Paid!') {
+    return (templateForSuccessfulPayment = templateForSuccessfulPayment.replace(
+      '{{message}}',
+      message,
+    ));
+  }
+
+  if (message === 'Payment Failed!') {
+    return templateForFailedPayment.replace('{{message}}', message);
+  }
+
+  // return templateForSuccessfulPayment;
+};
+
 export const BookingServices = {
   createBooking,
   viewAllBookings,
   viewAllBookingsByUser,
   cancelBooking,
   checkAvailability,
+  paymentConfirmation,
 };

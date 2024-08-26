@@ -18,6 +18,23 @@ const login: RequestHandler = async (req, res, next) => {
   }
 };
 
+const refreshToken: RequestHandler = async (req, res, next) => {
+  try {
+    const { refreshToken } = req.cookies;
+    const result = await AuthServices.refreshToken(refreshToken);
+
+    return res.status(200).json({
+      success: true,
+      statusCode: 200,
+      message: 'Refresh token created successfully',
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const AuthControllers = {
   login,
+  refreshToken,
 };
