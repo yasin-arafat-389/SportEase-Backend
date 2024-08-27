@@ -73,14 +73,14 @@ const createBooking = async (payload: TBooking, user: JwtPayload) => {
 };
 
 const viewAllBookings = async () => {
-  const result = await BookingModel.find()
+  const result = await BookingModel.find({ isBooked: 'confirmed' })
     .populate('user')
     .populate('facility');
   return result;
 };
 
 const viewAllBookingsByUser = async (user: JwtPayload) => {
-  const result = await BookingModel.find()
+  const result = await BookingModel.find({ isBooked: 'confirmed' })
     .populate({
       path: 'user',
       match: { email: user.email },
@@ -176,7 +176,7 @@ const checkAvailability = async (dateFromQuery: string) => {
   return availableSlots;
 };
 
-const paymentConfirmation = async (transactionId: string, status: string) => {
+const paymentConfirmation = async (transactionId: string) => {
   const verifyResponse = await verifyPayment(transactionId);
 
   let result;
@@ -194,6 +194,8 @@ const paymentConfirmation = async (transactionId: string, status: string) => {
   } else {
     message = 'Payment Failed!';
   }
+
+  console.log(result);
 
   const filePathForSuccessfulPaymentTemplate = join(
     // eslint-disable-next-line no-undef

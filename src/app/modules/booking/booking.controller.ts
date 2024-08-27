@@ -18,9 +18,9 @@ const viewAllBookings: RequestHandler = async (req, res, next) => {
   try {
     const result = await BookingServices.viewAllBookings();
 
-    return res.status(result.length === 0 ? 404 : 200).json({
-      success: result.length === 0 ? false : true,
-      statusCode: result.length === 0 ? 404 : 200,
+    return res.status(200).json({
+      success: true,
+      statusCode: 200,
       message:
         result.length === 0
           ? 'No Data Found'
@@ -36,9 +36,9 @@ const viewAllBookingsByUser: RequestHandler = async (req, res, next) => {
   try {
     const result = await BookingServices.viewAllBookingsByUser(req.user);
 
-    return res.status(result.length === 0 ? 404 : 200).json({
-      success: result.length === 0 ? false : true,
-      statusCode: result.length === 0 ? 404 : 200,
+    return res.status(200).json({
+      success: true,
+      statusCode: 200,
       message:
         result.length === 0
           ? 'No Data Found'
@@ -83,11 +83,10 @@ const paymentConfirmationController: RequestHandler = async (
   next,
 ) => {
   try {
-    const { transactionId, status } = req.query;
+    const { transactionId } = req.query;
 
     const result = await BookingServices.paymentConfirmation(
       transactionId as string,
-      status as string,
     );
 
     res.send(result);
